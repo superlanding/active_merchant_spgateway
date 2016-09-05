@@ -1,0 +1,11 @@
+===============================================================================
+
+Please check and setup your  `config/initializers/spgateway.rb`
+
+    OffsitePayments::Integrations::Spgateway.setup do |spgateway|
+      spgateway.merchant_id =
+      spgateway.hash_key    =
+      spgateway.hash_iv     = 
+    end
+
+===============================================================================

@@ -8,7 +8,7 @@ module OffsitePayments #:nodoc:
         PARAMS_FIELDS = %w(
           Status Message MerchantID Amt TradeNo MerchantOrderNo PaymentType RespondType CheckCode PayTime IP
           EscrowBank TokenUseStatus RespondCode Auth Card6No Card4No Inst InstFirst InstEach ECI PayBankCode
-          PayerAccount5Code CodeNo BankCode Barcode_1 Barcode_2 Barcode_3 ExpireDate CheckCode
+          PayerAccount5Code CodeNo BankCode Barcode_1 Barcode_2 Barcode_3 ExpireDate CheckCode TokenValue TokenLife
         )
 
         PARAMS_FIELDS.each do |field|
@@ -55,6 +55,16 @@ module OffsitePayments #:nodoc:
 
           hash_raw_data = "HashIV=#{hash_iv}&#{raw_data}&HashKey=#{hash_key}"
           Digest::SHA256.hexdigest(hash_raw_data).upcase == check_code
+        end
+
+        # 是否為約定信用卡授權首次交易
+        def credit_card_agreement_first_trade?
+          token_use_status == "1"
+        end
+
+        # 是否為信用卡授權 token 交易
+        def credit_card_agreement_token_trade?
+          token_use_status.blank? && token_life.present?
         end
       end
     end

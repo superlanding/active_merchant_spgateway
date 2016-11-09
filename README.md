@@ -49,6 +49,8 @@ end
 
 ## Example
 
+- Standard
+
 ```
 <% payment_service_for  @order,
                         @order.user.email,
@@ -60,6 +62,26 @@ end
   <% service.item_desc @order.description %>
   <% service.email @order.user.email %>
   <% service.login_type 0 %>
+  <% service.encrypted_data %>
+  <%= submit_tag '付款' %>
+<% end %>
+```
+
+- Credit card agreement
+
+```
+<% payment_service_for  @order,
+                        @order.user.email,
+                        service: :spgateway,
+                        html: { :id => 'spgateway-form', :method => :post } do |service| %>
+  <% service.time_stamp @order.created_at %>
+  <% service.merchant_order_no @order.id %>
+  <% service.amt @order.total_amount.to_i %>
+  <% service.item_desc @order.description %>
+  <% service.email @order.user.email %>
+  <% service.login_type 0 %>
+  <% service.creditagreement 1 %>
+  <% service.token_term billing.merchant_id %>
   <% service.encrypted_data %>
   <%= submit_tag '付款' %>
 <% end %>

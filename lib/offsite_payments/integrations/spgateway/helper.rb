@@ -9,7 +9,7 @@ module OffsitePayments #:nodoc:
           MerchantID LangType MerchantOrderNo Amt ItemDesc TradeLimit
           ExpireDate ReturnURL NotifyURL CustomerURL ClientBackURL Email
           EmailModify LoginType OrderComment CREDIT CreditRed InstFlag UNIONPAY
-          WEBATM VACC CVS BARCODE CUSTOM TokenTerm
+          WEBATM VACC CVS BARCODE CUSTOM TokenTerm CREDITAGREEMENT TokenLife
         )
 
         FIELDS.each do |field|

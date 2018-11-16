@@ -1,6 +1,7 @@
 require 'action_view'
 require 'active_merchant_spgateway/version'
 require 'active_merchant'
+require 'money'
 require 'offsite_payments'
 require 'active_support/core_ext/string'
 require 'uri'

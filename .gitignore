@@ -10,3 +10,5 @@
 test/tmp/*
 *.gem
 coverage
+/gemfiles/*.gemfile.lock
+/gemfiles/.bundle/

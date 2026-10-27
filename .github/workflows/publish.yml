@@ -1,0 +1,121 @@
+name: Publish gem
+
+# master 上 gemspec 版本號尚未發佈到 rubygems.org 時，自動以 Trusted Publishing (OIDC) 發佈。
+# 版本已存在則跳過；不使用任何儲存的 RubyGems API key。
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-gem-${{ github.repository }}
+  cancel-in-progress: false
+
+env:
+  # 與 test.yml 矩陣中的 Ruby 3.4 / Rails 8.0 組合一致（gemfiles/ 的 lockfile 不納入版控，由 CI 解析）
+  RUBY_VERSION: '3.4.11'
+  BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_8.0.gemfile
+  GEM_NAME: active_merchant_spgateway
+  GEMSPEC: active_merchant_spgateway.gemspec
+
+jobs:
+  check:
+    name: Check version on rubygems.org
+    runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.check.outputs.should_publish }}
+      gem_name: ${{ steps.spec.outputs.name }}
+      gem_version: ${{ steps.spec.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ruby/setup-ruby@b1da4809b005e0178fe08a1d57317bffc00b7b4c # v1.332.0
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+
+      - name: Read gem name and version from gemspec
+        id: spec
+        run: |
+          ruby -e 'spec = Gem::Specification.load(ENV.fetch("GEMSPEC")) or abort("cannot load #{ENV["GEMSPEC"]}"); abort("gemspec name #{spec.name} != #{ENV["GEM_NAME"]}") unless spec.name == ENV["GEM_NAME"]; puts "name=#{spec.name}"; puts "version=#{spec.version}"' >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
+
+      - name: Check whether this version already exists on rubygems.org
+        id: check
+        env:
+          GEM_NAME: ${{ steps.spec.outputs.name }}
+          GEM_VERSION: ${{ steps.spec.outputs.version }}
+        run: |
+          set -euo pipefail
+          status=$(curl -sS -o versions.json -w '%{http_code}' "https://rubygems.org/api/v1/versions/${GEM_NAME}.json")
+          if [ "$status" = "404" ]; then
+            echo "Gem ${GEM_NAME} not found on rubygems.org; will publish."
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$status" != "200" ]; then
+            echo "::error::rubygems.org API returned HTTP ${status}"
+            exit 1
+          fi
+          if jq -e --arg v "$GEM_VERSION" 'any(.[]; .number == $v)' versions.json > /dev/null; then
+            echo "${GEM_NAME} ${GEM_VERSION} already on rubygems.org; skip publish."
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "${GEM_NAME} ${GEM_VERSION} not on rubygems.org yet; will publish."
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  test:
+    name: Test (Ruby 3.4 / Rails 8.0)
+    needs: check
+    if: needs.check.outputs.should_publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ruby/setup-ruby@b1da4809b005e0178fe08a1d57317bffc00b7b4c # v1.332.0
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+
+      - run: bundle exec rake t
+
+  publish:
+    name: Publish ${{ needs.check.outputs.gem_name }} ${{ needs.check.outputs.gem_version }}
+    needs: [check, test]
+    if: needs.check.outputs.should_publish == 'true' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    environment: gem-publish
+    permissions:
+      id-token: write  # Trusted Publishing (OIDC)
+      contents: write  # rake release 推送 vX.Y.Z tag
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ruby/setup-ruby@b1da4809b005e0178fe08a1d57317bffc00b7b4c # v1.332.0
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+
+      # setup-ruby 的 bundler-cache 會把 BUNDLE_PATH 等設定寫進 .bundle/config，
+      # 若該檔被 git 追蹤，rake release 的 guard_clean 會判定工作目錄不乾淨。
+      # 目前此 repo 沒有追蹤任何 .bundle/config；這一步對「有追蹤才標記」做容錯處理，
+      # 日後若加入 gemfiles/.bundle/config 或 .bundle/config 也不會讓發佈失敗。
+      - name: Ignore CI-only bundler config change
+        run: |
+          git status --porcelain
+          git ls-files -z '*.bundle/config' | xargs -0 -r git update-index --assume-unchanged
+          git status --porcelain
+
+      # 透過 rubygems/configure-rubygems-credentials 取得短效 OIDC token，
+      # 再執行 bundle exec rake release（build、建立並推送 vX.Y.Z tag、push gem）
+      - uses: rubygems/release-gem@7f9650160c1a4e7989fdc9855807bdbd421d8b6b # v1.4.1

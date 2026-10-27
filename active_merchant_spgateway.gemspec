@@ -14,6 +14,8 @@ Gem::Specification.new do |spec|
   spec.homepage      = "https://github.com/superlanding/active_merchant_spgateway"
   spec.license       = "MIT"
 
+  spec.required_ruby_version = ">= 3.0"
+
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
@@ -23,8 +25,11 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'money'
   spec.add_dependency 'offsite_payments', '~> 2'
 
-  spec.add_development_dependency 'bundler', '~> 1.10'
-  spec.add_development_dependency 'rake', '~> 10.0'
-  spec.add_development_dependency 'rails', '>= 3.2.6', '< 5'
+  spec.add_dependency 'actionview', '>= 7.0', '< 8.2'
+  spec.add_dependency 'activesupport', '>= 7.0', '< 8.2'
+
+  spec.add_development_dependency 'bundler', '>= 2.0'
+  spec.add_development_dependency 'rake', '>= 13'
+  spec.add_development_dependency 'minitest', '~> 5.0'
 
 end

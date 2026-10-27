@@ -1,0 +1,20 @@
+# frozen_string_literal: true
+source "https://rubygems.org"
+
+gemspec path: ".."
+
+gem "rails", "~> 7.1.0"
+gem "rake", ">= 13"
+gem "minitest", "~> 5.0"
+gem "minitest-reporters", require: false
+gem "simplecov", require: false
+
+# concurrent-ruby 1.3.5 起不再自動 require logger，Rails 7.0 / 7.1 會載入失敗
+gem "concurrent-ruby", "< 1.3.5"
+
+# Ruby 3.4 已不再內建這些 gem；Rails 7.0 / 7.1 沒有自行宣告，故明確列出
+gem "logger"
+gem "mutex_m"
+gem "bigdecimal"
+gem "base64"
+gem "drb"

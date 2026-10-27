@@ -13,6 +13,7 @@
 - **每一個 PR 都必須同步更新文件**：
   - 只要行為、用法、設定、相依套件或支援的 Ruby / Rails 版本有變，就要更新 `README.md`。
   - 一律要在 `CHANGELOG.md` 新增一筆條目（[Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/) 格式，分類用 Added / Changed / Deprecated / Removed / Fixed / Security）。
+- **語言規則**：`README.md` 與 `CHANGELOG.md` 一律用繁體中文（zh-TW，台灣用語）撰寫；程式碼、識別字（class / 方法 / 變數名稱）、指令、檔名與路徑維持英文，不要翻譯。
 - `CHANGELOG.md` 的寫法：
   - 沒有跳版號的 PR：寫在最上方的 `## [Unreleased]` 底下。
   - 有跳版號的 PR：把條目寫在新的版本章節 `## [x.y.z] - YYYY-MM-DD`（日期為合併日），並同步更新檔尾的版本比較連結。

@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'activemerchant', '~> 1.50'
   spec.add_dependency 'money'
-  spec.add_dependency 'offsite_payments', '~> 2'
+  spec.add_dependency 'offsite_payments', '>= 2', '< 4'
 
   spec.add_dependency 'actionview', '>= 7.0', '< 8.2'
   spec.add_dependency 'activesupport', '>= 7.0', '< 8.2'

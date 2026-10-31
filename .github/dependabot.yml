@@ -4,8 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      day: "sunday"
+      time: "06:00"
       timezone: "Asia/Taipei"
     open-pull-requests-limit: 5
     groups:
@@ -19,8 +19,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      day: "sunday"
+      time: "06:00"
       timezone: "Asia/Taipei"
     open-pull-requests-limit: 5
     groups:
